@@ -15,55 +15,95 @@ public class Main{
             }
         }
     }
-    public static void main(String[] args){
-       StudentManager manager = new StudentManager();
-       manager.loadFromFile();
-       Scanner sc = new Scanner(System.in);
-        
-        while (true){
-            System.out.println("\n --- Student Management ---");
-            System.out.println("1. Add Student");
-            System.out.println("2. View All Student");
-            System.out.println("3. Update student");
-            System.out.println("4. Delete student");
-            System.out.println("5. Exit");
+    static int readId(Scanner sc, String prompt) {
+        while (true) {
+            int id = readInt(sc, prompt);
+            if (Student.isValidId(id)) {
+                return id;
+            }
+            System.out.println("ID must be a positive number.");
+        }
+    }
 
-            int choice = readInt(sc , "Enter the Choice: ") ;
-            if(choice == 1){
-                int id = readInt(sc , "Enter id: ");
+    static int readAge(Scanner sc, String prompt) {
+        while (true) {
+            int age = readInt(sc, prompt);
+            if (Student.isValidAge(age)) {
+                return age;
+            }
+            System.out.println("Age must be between " + Student.MIN_AGE + " and " + Student.MAX_AGE + ".");
+        }
+    }
 
-                System.out.println("Enter Name: ");
-                String name = sc.nextLine();
+    static String readText(Scanner sc, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String text = sc.nextLine().trim();
+            if (Student.isValidText(text)) {
+                return text;
+            }
+            System.out.println("Value cannot be empty or contain a comma.");
+        }
+    }
+    public static void main(String[] args) {
+        StudentManager manager = new StudentManager();
 
-                int age = readInt(sc, "Enter age: ");
+        try (Scanner sc = new Scanner(System.in)) {
+            while (true) {
+                System.out.println("\n--- Student Management ---");
+                System.out.println("1. Add Student");
+                System.out.println("2. View All Students");
+                System.out.println("3. Update Student");
+                System.out.println("4. Delete Student");
+                System.out.println("5. Exit");
 
-                System.out.println("Enter course: ");
-                String course = sc.nextLine();
-                
-                Student s = new Student(id,name,age,course);
-                manager.addStudent(s);
-                System.out.println("Student added");
-            } else if (choice == 4) {
-                int id = readInt(sc, "Enter the id to delete: ");
-                manager.deleteStudent(id);
-            } else if (choice == 3) {
-                int id = readInt(sc , "Enter id to update: ");
+                int choice = readInt(sc, "Enter your choice: ");
 
-                System.out.println("Enter updated name: ");
-                String name = sc.nextLine();
-
-                int age = readInt(sc, "Enter updated age: ");
-                System.out.println("Enter updated course: ");
-                String course = sc.nextLine();
-                manager.updateStudent(id,name,age,course);
-            } else if (choice == 2) {
-                manager.viewAllStudents();
-            } else if(choice == 5){
-                manager.saveToFile();
-                System.out.println("Good Bye");
-                break;
-            } else{
-                System.out.println("Choice not found");
+                switch (choice) {
+                    case 1: {
+                        int id = readId(sc, "Enter id: ");
+                        if (manager.exists(id)) {
+                            System.out.println("A student with ID " + id + " already exists.");
+                            break;
+                        }
+                        String name = readText(sc, "Enter name: ");
+                        int age = readAge(sc, "Enter age: ");
+                        String course = readText(sc, "Enter course: ");
+                        manager.addStudent(new Student(id, name, age, course));
+                        System.out.println("Student added.");
+                        break;
+                    }
+                    case 2:
+                        manager.viewAllStudents();
+                        break;
+                    case 3: {
+                        int id = readId(sc, "Enter id to update: ");
+                        if (!manager.exists(id)) {
+                            System.out.println("No student found with ID " + id + ".");
+                            break;
+                        }
+                        String name = readText(sc, "Enter updated name: ");
+                        int age = readAge(sc, "Enter updated age: ");
+                        String course = readText(sc, "Enter updated course: ");
+                        manager.updateStudent(id, name, age, course);
+                        System.out.println("Student updated.");
+                        break;
+                    }
+                    case 4: {
+                        int id = readId(sc, "Enter id to delete: ");
+                        if (manager.deleteStudent(id)) {
+                            System.out.println("Student deleted.");
+                        } else {
+                            System.out.println("No student found with ID " + id + ".");
+                        }
+                        break;
+                    }
+                    case 5:
+                        System.out.println("Goodbye!");
+                        return;
+                    default:
+                        System.out.println("Choice not found.");
+                }
             }
         }
     }
